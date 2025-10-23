@@ -40,6 +40,16 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // ==========================================================
+        // PENAMBAHAN DI SINI
+        // Ini mendaftarkan 'api' guard yang dipanggil di routes/api.php
+        // dan memberitahu Laravel untuk memakai 'sanctum'
+        // ==========================================================
+        'api' => [
+            'driver' => 'sanctum',
+            'provider' => 'users',
+        ],
     ],
 
     /*

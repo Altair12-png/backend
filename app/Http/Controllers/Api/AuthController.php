@@ -11,49 +11,49 @@ class AuthController extends Controller
 {
     public function login(Request $request)
     {
-        // 1️⃣ Validasi input dari Flutter
+        // validasi input
         $credentials = $request->validate([
             'username' => 'required|string',
             'password' => 'required|string',
             'role' => 'required|in:warga,staff,rtrw',
         ]);
 
-        //  Cek apakah username terdaftar
+        // cek username
         $user = User::where('username', $credentials['username'])->first();
 
         if (!$user) {
             return response()->json([
-                'message' => 'Username tidak ditemukan.'
+                'message' => 'username tidak ditemukan.'
             ], 404);
         }
 
-        //  Verifikasi password (tanpa Auth::attempt)
+        // cek password
         if (!Hash::check($credentials['password'], $user->password)) {
             return response()->json([
-                'message' => 'Password salah.'
+                'message' => 'password salah.'
             ], 401);
         }
 
-        //  Verifikasi role
+        // cek role
         if ($user->role !== $credentials['role']) {
             return response()->json([
-                'message' => "Role akun tidak sesuai. Anda harus masuk sebagai {$user->role}.",
+                'message' => "role akun tidak sesuai. anda harus masuk sebagai {$user->role}.",
             ], 401);
         }
 
-        //  (Opsional) Buat token login jika kamu sudah pakai Sanctum
-        // $token = $user->createToken('auth_token')->plainTextToken;
+        // buat token sanctum
+        $token = $user->createToken('auth_token')->plainTextToken;
 
-        //  Respon sukses
+        // respon sukses
         return response()->json([
-            'message' => 'Login berhasil',
+            'message' => 'login berhasil',
             'user' => [
                 'id' => $user->id,
                 'username' => $user->username,
                 'nama' => $user->nama,
                 'role' => $user->role,
             ],
-            // 'token' => $token, 
+            'token' => $token
         ], 200);
     }
 }

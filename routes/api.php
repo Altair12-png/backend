@@ -3,49 +3,69 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\FasilitasController; // Import Controller Fasilitas
+use App\Http\Controllers\Api\FasilitasController;
+use App\Http\Controllers\PeminjamanController;
 
-// Route default untuk test koneksi
-Route::get('/test', function () {
-    return response()->json(['message' => 'API Connected Successfully']);
-});
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Semua route API didefinisikan di sini.
+|
+*/
 
-// Route login (dari AuthController)
+// route test koneksi api
+Route::get('/test', fn() => response()->json(['message' => 'API Connected Successfully']));
+
+// autentikasi
 Route::post('/login', [AuthController::class, 'login']);
 
 /*
 |--------------------------------------------------------------------------
-| Public Routes (Dapat Diakses Warga untuk Melihat List Fasilitas)
+| Public Routes (tidak perlu login)
 |--------------------------------------------------------------------------
 */
 
-// A. List Semua Fasilitas (Wajib untuk List Inventaris)
-Route::get('/fasilitas', [FasilitasController::class, 'index']);
-
-// B. List Rekomendasi (Opsional, untuk Dashboard yang lebih efisien)
+// rekomendasi fasilitas
 Route::get('/fasilitas/rekomendasi', [FasilitasController::class, 'rekomendasi']);
 
+// lihat daftar & detail fasilitas
+Route::get('/fasilitas', [FasilitasController::class, 'index']);
+Route::get('/fasilitas/{fasilitas}', [FasilitasController::class, 'show']);
 
 /*
 |--------------------------------------------------------------------------
-| Authenticated Routes (Membutuhkan Token Akses)
+| Authenticated Routes (perlu login sanctum)
 |--------------------------------------------------------------------------
-| Digunakan untuk fungsionalitas yang memerlukan user login (Staff/Warga/RT/RW).
 */
-
-// Middleware 'auth:sanctum' akan memvalidasi token dari Flutter
 Route::middleware('auth:sanctum')->group(function () {
-    
-    // Staff: Menambah Fasilitas Baru (Fungsionalitas CREATE)
-    // Di sisi Controller/Middleware, harus dipastikan hanya user ber-role "Staff" yang bisa mengakses ini.
+
+    // data user login
+    Route::get('/user', fn(Request $request) => $request->user());
+
+    /*
+    |--------------------------------------------------------------------------
+    | fasilitas (admin/staff)
+    |--------------------------------------------------------------------------
+    */
     Route::post('/fasilitas', [FasilitasController::class, 'store']);
-    
-    // [Rekomendasi Tambahan] Endpoint untuk Update dan Delete oleh Staff/Admin
-    // Route::put('/fasilitas/{id}', [FasilitasController::class, 'update']);
-    // Route::delete('/fasilitas/{id}', [FasilitasController::class, 'destroy']);
-    
-    // Endpoint user profile
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
+    Route::put('/fasilitas/{fasilitas}', [FasilitasController::class, 'update']);
+    Route::delete('/fasilitas/{fasilitas}', [FasilitasController::class, 'destroy']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | peminjaman (warga / rt / staff)
+    |--------------------------------------------------------------------------
+    */
+
+    // endpoint custom (harus dideklarasi dulu biar tidak bentrok dengan apiResource)
+    Route::post('/peminjaman/ajukan', [PeminjamanController::class, 'store']); // warga
+    Route::patch('/peminjaman/setujui/{id}', [PeminjamanController::class, 'setujui']); // rt/rw
+    Route::patch('/peminjaman/tolak/{id}', [PeminjamanController::class, 'tolak']); // rt/rw
+    Route::patch('/peminjaman/serahkan/{id}', [PeminjamanController::class, 'serahkan']); // staff
+    Route::patch('/peminjaman/kembalikan/{id}', [PeminjamanController::class, 'kembalikan']); // staff
+
+    // resource default: index, show, update, destroy (tanpa store)
+    Route::apiResource('peminjaman', PeminjamanController::class)->except(['store']);
 });

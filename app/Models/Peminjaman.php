@@ -13,6 +13,7 @@ protected $table = 'peminjaman';
 
 protected $fillable = [
     'fasilitas_id',
+    'user_id', // <-- DITAMBAHKAN
     'nama_peminjam',
     'jumlah_pinjam',
     'alasan',
@@ -32,5 +33,11 @@ protected $dates = [
 public function fasilitas()
 {
     return $this->belongsTo(Fasilitas::class);
+}
+
+
+public function user()
+{
+    return $this->belongsTo(User::class);
 }
 }

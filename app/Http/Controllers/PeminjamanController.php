@@ -7,6 +7,9 @@ use App\Models\Fasilitas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+// Jika kamu ingin menggunakan ID user yang sedang login (Auth::id()), 
+// tambahkan 'use Illuminate\Support\Facades\Auth;'
+// Tapi berdasarkan permintaan validasi, user_id diasumsikan dikirim via request.
 
 class PeminjamanController extends Controller
 {
@@ -15,6 +18,7 @@ class PeminjamanController extends Controller
     {
         $request->validate([
             'fasilitas_id' => 'required|exists:fasilitas,id',
+            'user_id' => 'required|exists:users,id', // <-- DITAMBAHKAN
             'nama_peminjam' => 'required|string|max:255',
             'jumlah_pinjam' => 'required|integer|min:1',
             'alasan' => 'required|string',
@@ -32,6 +36,7 @@ class PeminjamanController extends Controller
 
     $peminjaman = Peminjaman::create([
         'fasilitas_id' => $request->fasilitas_id,
+        'user_id' => $request->user_id, // <-- DITAMBAHKAN
         'nama_peminjam' => $request->nama_peminjam,
         'jumlah_pinjam' => $request->jumlah_pinjam,
         'alasan' => $request->alasan,
@@ -176,7 +181,7 @@ class PeminjamanController extends Controller
     public function getByUser($userId)
 {
     $data = Peminjaman::with('fasilitas')
-        ->where('user_id', $userId)
+        ->where('user_id', $userId) // <- Ini sudah benar
         ->orderByDesc('created_at')
         ->get();
 

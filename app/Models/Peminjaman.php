@@ -29,15 +29,6 @@ protected $dates = [
     'tanggal_kembali_aktual',
 ];
 
-public function index()
-{
-    $data = Peminjaman::with('fasilitas')->orderByDesc('created_at')->get();
-    return response()->json([
-        'success' => true,
-        'message' => 'Daftar semua peminjaman',
-        'data' => $data,
-    ]);
-} 
 public function fasilitas()
 {
     return $this->belongsTo(Fasilitas::class);

@@ -162,4 +162,14 @@ class PeminjamanController extends Controller
             return response()->json(['message' => 'terjadi kesalahan saat pengembalian.'], 500);
         }
     }
+
+    public function index()
+    {
+        $data = Peminjaman::with('fasilitas')->orderByDesc('created_at')->get();
+            return response()->json([
+            'success' => true,
+            'message' => 'Daftar semua peminjaman',
+            'data' => $data,
+    ]);
+    } 
 }

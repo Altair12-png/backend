@@ -12,6 +12,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('fasilitas_id')->constrained('fasilitas')->onDelete('cascade');
 
+            // <-- PERUBAHAN DI SINI
+            // Menambahkan user_id yang terhubung ke tabel 'users'
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+
             // data peminjam
             $table->string('nama_peminjam');
             $table->integer('jumlah_pinjam');

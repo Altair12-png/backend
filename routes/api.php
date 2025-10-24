@@ -65,7 +65,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/peminjaman/tolak/{id}', [PeminjamanController::class, 'tolak']); // rt/rw
     Route::patch('/peminjaman/serahkan/{id}', [PeminjamanController::class, 'serahkan']); // staff
     Route::patch('/peminjaman/kembalikan/{id}', [PeminjamanController::class, 'kembalikan']); // staff
-
+    Route::get('/peminjaman/user/{userId}', [PeminjamanController::class, 'getByUser']);
     // resource default: index, show, update, destroy (tanpa store)
     Route::apiResource('peminjaman', PeminjamanController::class)->except(['store']);
 });

@@ -172,4 +172,25 @@ class PeminjamanController extends Controller
             'data' => $data,
     ]);
     } 
+
+    public function getByUser($userId)
+{
+    $data = Peminjaman::with('fasilitas')
+        ->where('user_id', $userId)
+        ->orderByDesc('created_at')
+        ->get();
+
+if ($data->isEmpty()) {
+    return response()->json([
+        'success' => false,
+        'message' => 'Belum ada peminjaman untuk user ini.',
+        'data' => [],
+    ], 404);
+    }
+    return response()->json([
+        'success' => true,
+        'message' => 'Daftar peminjaman oleh user',
+        'data' => $data,
+        ]);
+    }
 }

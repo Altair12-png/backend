@@ -36,36 +36,35 @@ Route::get('/fasilitas/{fasilitas}', [FasilitasController::class, 'show']);
 
 /*
 |--------------------------------------------------------------------------
-| Authenticated Routes (perlu login sanctum)
+| Routes tanpa middleware (semua bebas diakses untuk testing)
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth:sanctum')->group(function () {
 
-    // data user login
-    Route::get('/user', fn(Request $request) => $request->user());
+// data user login (sementara bebas diakses)
+Route::get('/user', fn(Request $request) => $request->user());
 
-    /*
-    |--------------------------------------------------------------------------
-    | fasilitas (admin/staff)
-    |--------------------------------------------------------------------------
-    */
-    Route::post('/fasilitas', [FasilitasController::class, 'store']);
-    Route::put('/fasilitas/{fasilitas}', [FasilitasController::class, 'update']);
-    Route::delete('/fasilitas/{fasilitas}', [FasilitasController::class, 'destroy']);
+/*
+|--------------------------------------------------------------------------
+| fasilitas (admin/staff)
+|--------------------------------------------------------------------------
+*/
+Route::post('/fasilitas', [FasilitasController::class, 'store']);
+Route::put('/fasilitas/{fasilitas}', [FasilitasController::class, 'update']);
+Route::delete('/fasilitas/{fasilitas}', [FasilitasController::class, 'destroy']);
 
-    /*
-    |--------------------------------------------------------------------------
-    | peminjaman (warga / rt / staff)
-    |--------------------------------------------------------------------------
-    */
+/*
+|--------------------------------------------------------------------------
+| peminjaman (warga / rt / staff)
+|--------------------------------------------------------------------------
+*/
 
-    // endpoint custom (harus dideklarasi dulu biar tidak bentrok dengan apiResource)
-    Route::post('/peminjaman/ajukan', [PeminjamanController::class, 'store']); // warga
-    Route::patch('/peminjaman/setujui/{id}', [PeminjamanController::class, 'setujui']); // rt/rw
-    Route::patch('/peminjaman/tolak/{id}', [PeminjamanController::class, 'tolak']); // rt/rw
-    Route::patch('/peminjaman/serahkan/{id}', [PeminjamanController::class, 'serahkan']); // staff
-    Route::patch('/peminjaman/kembalikan/{id}', [PeminjamanController::class, 'kembalikan']); // staff
-    Route::get('/peminjaman/user/{userId}', [PeminjamanController::class, 'getByUser']);
-    // resource default: index, show, update, destroy (tanpa store)
-    Route::apiResource('peminjaman', PeminjamanController::class)->except(['store']);
-});
+// endpoint custom (harus dideklarasi dulu biar tidak bentrok dengan apiResource)
+Route::post('/peminjaman/ajukan', [PeminjamanController::class, 'store']); // warga
+Route::patch('/peminjaman/setujui/{id}', [PeminjamanController::class, 'setujui']); // rt/rw
+Route::patch('/peminjaman/tolak/{id}', [PeminjamanController::class, 'tolak']); // rt/rw
+Route::patch('/peminjaman/serahkan/{id}', [PeminjamanController::class, 'serahkan']); // staff
+Route::patch('/peminjaman/kembalikan/{id}', [PeminjamanController::class, 'kembalikan']); // staff
+Route::get('/peminjaman/user/{userId}', [PeminjamanController::class, 'getByUser']);
+
+// resource default: index, show, update, destroy (tanpa store)
+Route::apiResource('peminjaman', PeminjamanController::class)->except(['store']);

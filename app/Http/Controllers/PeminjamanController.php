@@ -22,29 +22,29 @@ class PeminjamanController extends Controller
             'tanggal_kembali_rencana' => 'required|date|after_or_equal:tanggal_pinjam',
         ]);
 
-        $fasilitas = Fasilitas::find($request->fasilitas_id);
+    $fasilitas = Fasilitas::find($request->fasilitas_id);
 
-        if (!$fasilitas || $fasilitas->jumlah < $request->jumlah_pinjam) {
-            return response()->json([
-                'message' => 'stok fasilitas tidak mencukupi atau fasilitas tidak ditemukan.'
-            ], 400);
-        }
-
-        $peminjaman = Peminjaman::create([
-            'fasilitas_id' => $request->fasilitas_id,
-            'nama_peminjam' => $request->nama_peminjam,
-            'jumlah_pinjam' => $request->jumlah_pinjam,
-            'alasan' => $request->alasan,
-            'tanggal_pinjam' => $request->tanggal_pinjam,
-            'tanggal_kembali_rencana' => $request->tanggal_kembali_rencana,
-            'status_peminjaman' => 'Diajukan',
-        ]);
-
+    if (!$fasilitas || $fasilitas->jumlah < $request->jumlah_pinjam) {
         return response()->json([
-            'message' => 'pengajuan berhasil diajukan.',
-            'data' => $peminjaman
-        ], 201);
+            'message' => 'stok fasilitas tidak mencukupi atau fasilitas tidak ditemukan.'
+        ], 400);
     }
+
+    $peminjaman = Peminjaman::create([
+        'fasilitas_id' => $request->fasilitas_id,
+        'nama_peminjam' => $request->nama_peminjam,
+        'jumlah_pinjam' => $request->jumlah_pinjam,
+        'alasan' => $request->alasan,
+        'tanggal_pinjam' => $request->tanggal_pinjam,
+        'tanggal_kembali_rencana' => $request->tanggal_kembali_rencana,
+        'status_peminjaman' => 'Diajukan',
+    ]);
+
+    return response()->json([
+        'message' => 'pengajuan berhasil diajukan.',
+        'data' => $peminjaman
+    ], 201);
+}
 
     // rt/rw setujui pengajuan
     public function setujui($id)
@@ -193,4 +193,6 @@ if ($data->isEmpty()) {
         'data' => $data,
         ]);
     }
+
+    
 }

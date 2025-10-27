@@ -8,20 +8,25 @@ class HandleCors
 {
     public function handle($request, Closure $next)
     {
-        // Jika request adalah preflight (OPTIONS)
-        if ($request->getMethod() === "OPTIONS") {
-            return response()->json('OK', 200, [
-                'Access-Control-Allow-Origin' => '*',
-                'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers' => 'Content-Type, Authorization, ngrok-skip-browser-warning, Accept, Origin',
-            ]);
+        $headers = [
+            'Access-Control-Allow-Origin' => '*',
+            'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers' => 'Content-Type, Authorization, ngrok-skip-browser-warning, Accept, Origin',
+            'Access-Control-Allow-Credentials' => 'true',
+            'Cross-Origin-Resource-Policy' => 'cross-origin',
+            'Cross-Origin-Embedder-Policy' => 'require-corp',
+        ];
+
+        if ($request->getMethod() === 'OPTIONS') {
+            return response()->json('OK', 200, $headers);
         }
 
-        // Untuk semua request normal
-        return $next($request)
-            ->header('Access-Control-Allow-Origin', '*')
-            ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-            ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization, ngrok-skip-browser-warning, Accept, Origin')
-            ->header('Access-Control-Allow-Credentials', 'true');
+        $response = $next($request);
+
+        foreach ($headers as $key => $value) {
+            $response->headers->set($key, $value);
+        }
+
+        return $response;
     }
 }

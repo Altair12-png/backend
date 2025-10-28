@@ -10,13 +10,16 @@ use Illuminate\Support\Facades\Storage;
 
 class FasilitasController extends Controller
 {
-    /**
-     * A. List Semua Fasilitas (GET /api/fasilitas)
-     */
+    /** A. List Semua Fasilitas */
     public function index()
     {
-        $fasilitas = Fasilitas::all();
-        
+        $fasilitas = Fasilitas::all()->map(function ($item) {
+            if ($item->gambar_url && !str_starts_with($item->gambar_url, 'http')) {
+                $item->gambar_url = asset('storage/fasilitas/' . $item->gambar_url);
+            }
+            return $item;
+        });
+
         return response()->json([
             'success' => true,
             'message' => 'Daftar semua fasilitas berhasil diambil',
@@ -24,12 +27,15 @@ class FasilitasController extends Controller
         ], 200);
     }
 
-    /**
-     * B. List Rekomendasi (GET /api/fasilitas/rekomendasi)
-     */
+    /** B. List Rekomendasi */
     public function rekomendasi()
     {
-        $rekomendasi = Fasilitas::limit(4)->inRandomOrder()->get();
+        $rekomendasi = Fasilitas::limit(4)->inRandomOrder()->get()->map(function ($item) {
+            if ($item->gambar_url && !str_starts_with($item->gambar_url, 'http')) {
+                $item->gambar_url = asset('storage/fasilitas/' . $item->gambar_url);
+            }
+            return $item;
+        });
 
         return response()->json([
             'success' => true,
@@ -38,11 +44,7 @@ class FasilitasController extends Controller
         ], 200);
     }
 
-    /**
-     * C. Staff: Tambah Barang/Fasilitas Baru 
-     * Jika nama sudah ada, maka jumlah ditambah
-     * (POST /api/fasilitas)
-     */
+    /** C. Tambah Fasilitas / Update Jika Sudah Ada */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -53,21 +55,13 @@ class FasilitasController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi gagal.',
-                'errors' => $validator->errors()
-            ], 422);
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
 
-        // Cek apakah nama sudah ada
         $existing = Fasilitas::where('nama', $request->nama)->first();
 
         if ($existing) {
-            // Jika sudah ada → tambahkan jumlahnya
             $existing->jumlah += $request->jumlah;
-
-            // Jika ada gambar baru, update gambarnya
             if ($request->hasFile('gambar')) {
                 if ($existing->gambar_url && Storage::exists('public/fasilitas/' . $existing->gambar_url)) {
                     Storage::delete('public/fasilitas/' . $existing->gambar_url);
@@ -75,13 +69,15 @@ class FasilitasController extends Controller
                 $path = $request->file('gambar')->store('public/fasilitas');
                 $existing->gambar_url = basename($path);
             }
-
-            // Update deskripsi jika dikirim
             if ($request->filled('deskripsi')) {
                 $existing->deskripsi = $request->deskripsi;
             }
-
             $existing->save();
+
+            // pastikan gambar_url jadi URL penuh
+            if ($existing->gambar_url && !str_starts_with($existing->gambar_url, 'http')) {
+                $existing->gambar_url = asset('storage/fasilitas/' . $existing->gambar_url);
+            }
 
             return response()->json([
                 'success' => true,
@@ -90,7 +86,6 @@ class FasilitasController extends Controller
             ], 200);
         }
 
-        // Kalau belum ada → buat baru
         $gambarUrl = null;
         if ($request->hasFile('gambar')) {
             $path = $request->file('gambar')->store('public/fasilitas');
@@ -104,6 +99,10 @@ class FasilitasController extends Controller
             'gambar_url' => $gambarUrl ?? $request->input('gambar_url_manual'),
         ]);
 
+        if ($fasilitas->gambar_url && !str_starts_with($fasilitas->gambar_url, 'http')) {
+            $fasilitas->gambar_url = asset('storage/fasilitas/' . $fasilitas->gambar_url);
+        }
+
         return response()->json([
             'success' => true,
             'message' => "Fasilitas baru '{$fasilitas->nama}' berhasil ditambahkan.",
@@ -111,18 +110,12 @@ class FasilitasController extends Controller
         ], 201);
     }
 
-    /**
-     * D. Staff: Update Barang (PUT /api/fasilitas/{id})
-     */
+    /** D. Update Fasilitas */
     public function update(Request $request, $id)
     {
         $fasilitas = Fasilitas::find($id);
-
         if (!$fasilitas) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Fasilitas tidak ditemukan.',
-            ], 404);
+            return response()->json(['success' => false, 'message' => 'Fasilitas tidak ditemukan.'], 404);
         }
 
         $validator = Validator::make($request->all(), [
@@ -133,15 +126,10 @@ class FasilitasController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi gagal.',
-                'errors' => $validator->errors()
-            ], 422);
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
 
         if ($request->hasFile('gambar')) {
-            // Hapus gambar lama jika ada
             if ($fasilitas->gambar_url && Storage::exists('public/fasilitas/' . $fasilitas->gambar_url)) {
                 Storage::delete('public/fasilitas/' . $fasilitas->gambar_url);
             }
@@ -151,6 +139,10 @@ class FasilitasController extends Controller
 
         $fasilitas->update($request->only(['nama', 'jumlah', 'deskripsi']));
 
+        if ($fasilitas->gambar_url && !str_starts_with($fasilitas->gambar_url, 'http')) {
+            $fasilitas->gambar_url = asset('storage/fasilitas/' . $fasilitas->gambar_url);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Fasilitas berhasil diperbarui.',
@@ -158,31 +150,19 @@ class FasilitasController extends Controller
         ], 200);
     }
 
-    /**
-     * E. Staff: Hapus Barang (DELETE /api/fasilitas/{id})
-     */
+    /** E. Hapus Fasilitas */
     public function destroy($id)
     {
         $fasilitas = Fasilitas::find($id);
-
         if (!$fasilitas) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Fasilitas tidak ditemukan.',
-            ], 404);
+            return response()->json(['success' => false, 'message' => 'Fasilitas tidak ditemukan.'], 404);
         }
 
-        // Hapus gambar di storage jika ada
         if ($fasilitas->gambar_url && Storage::exists('public/fasilitas/' . $fasilitas->gambar_url)) {
             Storage::delete('public/fasilitas/' . $fasilitas->gambar_url);
         }
 
         $fasilitas->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Fasilitas berhasil dihapus.',
-        ], 200);
+        return response()->json(['success' => true, 'message' => 'Fasilitas berhasil dihapus.'], 200);
     }
 }
-

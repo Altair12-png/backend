@@ -44,7 +44,31 @@ class FasilitasController extends Controller
         ], 200);
     }
 
-    /** C. Tambah Fasilitas / Update Jika Sudah Ada */
+    /** C. Detail Fasilitas */
+    public function show($id)
+    {
+        $fasilitas = Fasilitas::find($id);
+
+        if (!$fasilitas) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Fasilitas tidak ditemukan.',
+            ], 404);
+        }
+
+        // Tambahkan URL lengkap untuk gambar jika berupa path relatif
+        if ($fasilitas->gambar_url && !str_starts_with($fasilitas->gambar_url, 'http')) {
+            $fasilitas->gambar_url = asset('storage/fasilitas/' . $fasilitas->gambar_url);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Detail fasilitas berhasil diambil.',
+            'data' => $fasilitas
+        ], 200);
+    }
+
+    /** D. Tambah Fasilitas / Update Jika Sudah Ada */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -110,7 +134,7 @@ class FasilitasController extends Controller
         ], 201);
     }
 
-    /** D. Update Fasilitas */
+    /** E. Update Fasilitas */
     public function update(Request $request, $id)
     {
         $fasilitas = Fasilitas::find($id);
@@ -150,7 +174,7 @@ class FasilitasController extends Controller
         ], 200);
     }
 
-    /** E. Hapus Fasilitas */
+    /** F. Hapus Fasilitas */
     public function destroy($id)
     {
         $fasilitas = Fasilitas::find($id);
